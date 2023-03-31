@@ -67,6 +67,7 @@ app.put('/menu', function(req, res) {
   firebase.firestore().collection('menu').doc(req.body.menuData.id).update(req.body.menuData).then(res.send())
   res.send();
 })
+
 app.get('/waiting-list/:capacity', function(req, res) {
   var list = [];
   firebase.firestore().collection('waiting-list').get().then((docs)=>{
@@ -89,6 +90,7 @@ app.get('/waiting-list/:capacity', function(req, res) {
       res.send(list)
   });
 })
+
 app.put('/cleanTable/:tableID', function(req, res) {
   const data = {
     isEmpty: true,
@@ -118,6 +120,36 @@ app.get('/tables',function(req,res){
       }
   });
 })
+
+app.get('/chefView',function(req,res){
+  var list = [];
+  firebase.firestore().collection('tables').get().then((docs)=>{
+      if (!docs)
+          res.send(); 
+      else {
+          docs.forEach(doc => {
+            if(doc.data().viewCheck===true)
+              list.push(doc.data());
+          })
+          res.send(list)
+      }
+  });
+})
+
+app.put('/changeStatus/:id/:status',function(req,res){
+  var data = req.body;
+  var status = req.params['status']
+  data.foodStatus=status-1;
+  firebase.firestore().collection('tables').get().then((docs)=>{
+      docs.forEach(doc => {
+        if(doc.data().tableID==req.params['id']){
+          firebase.firestore().collection('tables').doc('table'+req.params['id']).update(data).then(res.send())
+        }
+      })
+    res.send()
+  });
+})
+
 app.get('/counter',function(req,res){
   firebase.firestore().collection("counters").get("waiting.list").then((docs)=>{
           docs.forEach(doc => {
@@ -125,6 +157,7 @@ app.get('/counter',function(req,res){
           })
   });
 })
+
 app.get('/table/:id',function(req,res){
   var list = [];
   firebase.firestore().collection('tables').get().then((docs)=>{
@@ -140,6 +173,7 @@ app.get('/table/:id',function(req,res){
 app.put('/waiting-list', function(req, res) {
   firebase.firestore().collection('waiting-list').doc(req.body.custData.id+"").set(req.body.custData).then(res.send())
 })
+
 app.put('/counter/:count', function(req, res) {
   firebase.firestore().collection('counters').doc("waiting-list").update({count:parseInt(req.params.count)}).then(res.send())
 })
